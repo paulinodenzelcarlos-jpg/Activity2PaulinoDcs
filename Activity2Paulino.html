@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple JavaScript CRUD</title>
+</head>
+<body>
+    <h1>Student CRUD System</h1>
+    <input type="hidden" id="editIndex" value="-1">
+    <label>Student ID:</label>
+    <input type="text" id="studentId">
+    <br><br>
+    <label>Student Name:</label>
+    <input type="text" id="studentName">
+    <br><br>
+    <label>Course:</label>
+    <input type="text" id="studentCourse">
+    <br><br>
+    <input type="button" onclick="saveStudent()" value="Save Student">
+    <button onclick="clearForm()">Cancel</button>
+    <hr>
+    <h2>Search Student</h2>
+    <label>Name to search:</label>
+    <input type="text" id="searchName">
+    <button onclick="searchStudent()">Search</button>
+    <button onclick="displayStudents()">Show All</button>
+    <hr>
+    <h2>Student Records</h2>
+    <button onclick="sortByName()">Sort by Name</button>
+    <br><br>
+    <table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Course</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="studentTable">
+        </tbody>
+    </table>
+    <p id="totalCount">Total Students: 0</p>
+    <script>
+        //The array taht is used as temporary storage
+        let students = [];
+        //creation and update 
+        function saveStudent() {
+            let id = document.getElementById("studentId").value;
+            let name = document.getElementById("studentName").value;
+            let course = document.getElementById("studentCourse").value;
+            let editIndex = parseInt(document.getElementById("editIndex").value);
+            if (id == "" || name == "" || course == "") {
+                alert("Please complete all fields.");
+                return;
+            }
+            //for repetition for id
+            for (let i = 0; i < students.length; i++) {
+                if (i != editIndex && students[i].id == id) {
+                    alert("That Student ID is already taken. Please use a different one.");
+                    return;
+                }
+            }
+            //for repetioton or name
+            for (let i = 0; i < students.length; i++) {
+                if (i != editIndex && students[i].name.toLowerCase() == name.toLowerCase()) {
+                    alert("A student with that name already exists.");
+                    return;
+                }
+            }
+            if (editIndex == -1) {
+                //create
+                let newStudent = {
+                    id: id,
+                    name: name,
+                    course: course
+                };
+                students[students.length] = newStudent;
+                alert("Student added successfully.");
+            } else {
+                students[editIndex].id = id;
+                students[editIndex].name = name;
+                students[editIndex].course = course;
+                alert("Student updated successfully.");
+            }
+            clearForm();
+            displayStudents();
+        }
+        function displayStudents() {
+            renderTable(students);
+        }
+        function renderTable(list) {
+            let table = document.getElementById("studentTable");
+            table.innerHTML = "";
+            if (list.length == 0) {
+                table.innerHTML = "<tr>"
+                    + "<td colspan='5'>No student records found.</td>"
+                    + "</tr>";
+                updateTotalCount();
+                return;
+            }
+            for (let index = 0; index < list.length; index++) {
+                let realIndex = findIndexOf(list[index]);
+                table.innerHTML +=
+                    "<tr>" +
+                    "<td>" + (index + 1) + "</td>" +
+                    "<td>" + list[index].id + "</td>" +
+                    "<td>" + list[index].name + "</td>" +
+                    "<td>" + list[index].course + "</td>" +
+                    "<td>" +
+                    "<button onclick='editStudent(" + realIndex + ")'>Edit</button> " +
+                    "<button onclick='deleteStudent(" + realIndex + ")'>Delete</button>" +
+                    "</td>" +
+                    "</tr>";
+            }
+            updateTotalCount();
+        }
+        function findIndexOf(student) {
+            for (let i = 0; i < students.length; i++) {
+                if (students[i] === student) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        function updateTotalCount() {
+            document.getElementById("totalCount").innerText = "Total Students: " + students.length;
+        }
+        function editStudent(index) {
+            document.getElementById("studentId").value = students[index].id;
+            document.getElementById("studentName").value = students[index].name;
+            document.getElementById("studentCourse").value = students[index].course;
+            document.getElementById("editIndex").value = index;
+        }
+        function deleteStudent(index) {
+            let answer = confirm("Are you sure you want to delete this student?");
+            if (answer == false) {
+                return;
+            }
+            for (let position = index; position < students.length - 1; position++) {
+                students[position] = students[position + 1];
+            }
+            students.length = students.length - 1;
+            clearForm();
+            displayStudents();
+            alert("Student deleted successfully.");
+        }
+        //Clear the input fields
+        function clearForm() {
+            document.getElementById("studentId").value = "";
+            document.getElementById("studentName").value = "";
+            document.getElementById("studentCourse").value = "";
+            document.getElementById("editIndex").value = "-1";
+        }
+        //search
+        function searchStudent() {
+            let keyword = document.getElementById("searchName").value.toLowerCase();
+            if (keyword == "") {
+                alert("Please enter a name to search.");
+                return;
+            }
+            //Build the matching list
+            let results = [];
+            for (let i = 0; i < students.length; i++) {
+                if (students[i].name.toLowerCase().indexOf(keyword) !== -1) {
+                    results[results.length] = students[i];
+                }
+            }
+            renderTable(results);
+        }
+        //Sorting the name 
+        function sortByName() {
+            for (let i = 0; i < students.length - 1; i++) {
+                for (let j = 0; j < students.length - 1 - i; j++) {
+                    if (students[j].name.toLowerCase() > students[j + 1].name.toLowerCase()) {
+                        // swap the two students
+                        let temp = students[j];
+                        students[j] = students[j + 1];
+                        students[j + 1] = temp;
+                    }
+                }
+            }
+            displayStudents();
+        }
+        displayStudents();
+    </script>
+</body>
+</html>
